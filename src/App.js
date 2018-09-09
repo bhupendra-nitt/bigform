@@ -5,28 +5,27 @@ import Button from './lib/Button';
 import Form from './Form';
 
 class App extends Component {
-
   constructor(props) {
     super(props);
     this.state = {
-      dataSet: [],
+      tree: {},
       id: 1
     };
     this._handleInputChange = this._handleInputChange.bind(this);
     this._handleButtonClick = this._handleButtonClick.bind(this);
     this._handleCheckboxClick = this._handleCheckboxClick.bind(this);
-    this._addNewRow = this._addNewRow.bind(this);
+    this.addChild = this.addChild.bind(this);
   }
 
   _handleInputChange(id, value) {
     const { dataSet } = this.state;
 
-   for(let i = 0; i< dataSet.length; i++) {
-     if(dataSet[i].id === id) {
-       dataSet[i].data.input.value = value;
-       this.setState({dataSet: dataSet});
-     }
-   }
+    for(let i = 0; i< dataSet.length; i++) {
+      if(dataSet[i].id === id) {
+        dataSet[i].data.input.value = value;
+        this.setState({dataSet: dataSet});
+      }
+    }
   }
 
   _handleButtonClick(id, value) {
@@ -34,7 +33,6 @@ class App extends Component {
 
     for(let i = 0; i< dataSet.length; i++) {
       if(dataSet[i].id === id) {
-       console.log(value);
         this.setState({dataSet: dataSet});
       }
     }
@@ -51,51 +49,66 @@ class App extends Component {
     }
   }
 
-  _addNewRow() {
-    const { dataSet } = this.state;
-    const newDataSet = dataSet.concat({
-      id: this.state.id +1, 
-      data: { 
-        checkbox: { 
-          value: false 
-        }, 
-        button: { 
-          label: ''  
+  generateId() {
+    return this.state.id+1;
+  }
+
+  pushChildToParent(currentSubTree, data, parentID) {
+    if(currentSubTree.id === parentID) {
+      const newID = this.state.id +1;
+      currentSubTree.children.push({
+        id: newID,
+        data: { 
+          name: 'hello'
         },
-        textArea: {
-          value: ''
-        },
-        input: {
-          value: ''
-        } 
+        children: []
+      })
+      this.setState({id: this.state.id + 1});
+      return;
+    } else {
+      for(let child in currentSubTree.children) {
+        this.pushChildToParent(currentSubTree.children[child], data, parentID);
       }
-    });
-    this.setState({dataSet: newDataSet, id: this.state.id+1 });
+    }
+  }
+
+  addChild(data, parentID) {
+    if(parentID === null) {
+      let tempTree = {
+        id: 1,
+        data: {
+          name: 'hello'
+        },
+        children: []
+      }
+      this.setState({tree: tempTree, id: this.state.id++});
+    } else {
+      this.pushChildToParent(this.state.tree, data, parentID);
+    }
+  }
+
+  _handleAddChildButton(data, id) {
+    this.addChild(data, id);
   }
 
   render() {
-    const { dataSet } = this.state
+    const { tree } = this.state
     return (
       <div className="App">
-      {
-        dataSet.map(element => {
-          return <Form
-          key={element.id}
-          id={element.id}
-          inputValue={element.data.input.value}
-          checkboxValue={element.data.checkbox.value}
-          textAreaValue={element.data.textArea.value}
-          handleButtonClick={this._handleButtonClick}
-          handleCheckboxClick={this._handleCheckboxClick}
-          handleInputChange={this._handleInputChange}
+        {
+        tree.data && <Form
+          key={tree.id}
+          id={tree.id}
+          addChild={this.addChild}
+          children={tree.children}
           />
-        })
-      }
-       <Button 
-        onClick={this._addNewRow}
+          }
+       { this.state.id === 1 && <Button 
+        onClick={() => this._handleAddChildButton({}, null)}
        >
-       Add
+        Add
        </Button>
+       }
       </div>
     );
   }

@@ -3,34 +3,41 @@ import Button from './lib/Button';
 import CheckBox from './lib/Checkbox';
 import TextArea from './lib/TextArea';
 import Input from './lib/Input';
-const handleChangeAttribute = (changeHandler, id, e) => changeHandler(id, e.target.value)
 
-const Form = (props) => {
-  return (
-    <div>
-      <CheckBox 
-      onChange={(e) => handleChangeAttribute(props.handleCheckboxClick, props.id, e)}
-      value={props.checkboxValue}
-     />
-     
-      <Input
-        onChange={(e) => handleChangeAttribute(props.handleInputChange, props.id, e)}
-        value={props.inputValue}
-      />
-
-      <Button 
-        onClick={(e) => handleChangeAttribute(props.handleButtonClick, props.id, e)}
-      >
-       Done
-      </Button>
-      
+class Form extends React.Component {
+  constructor(props){
+    super(props);
+  }
+  render () {
+    return (
       <div>
-        <TextArea 
-        label={props.inputValue}
-        />
+       one
+        <Button 
+            onClick={() => this.props.addChild({
+              id: this.props.id +1,
+              data: { 
+                name: this.props.id 
+              },
+              children: []
+            }, this.props.id)}
+          >
+          Add
+          </Button>
+          {
+          this.props.children && this.props.children.map(element => {
+            return <div style={{paddingLeft: '20px'}}>
+              <Form
+                key={element.id}
+                id={element.id}
+                addChild={this.props.addChild}
+                children={element.children}
+              />
+            </div>
+          })
+        }
       </div>
-    </div>
-  );
+    );
+   }
 };
 
 export default Form;
